@@ -1,0 +1,5 @@
+provider: "provider code"
+username: "user name"
+password: "encrypted password"
+from_date: "date without time"
+to_date: "date without time"
