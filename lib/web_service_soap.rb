@@ -4,6 +4,8 @@ require 'nokogiri'
 require 'json'
 
 class WebServiceSOAP
+  attr_reader :provider, :username, :password, :from_date, :to_date
+
   def initialize(provider:, username:, password:, from_date:, to_date:)
     # Set arguments
     @provider = provider
