@@ -140,7 +140,7 @@ class WebServiceSOAP
         f.write id.to_s + "\n"
       end
 
-      f.write '\n' + 'Start time: ' + Time.now.inspect
+      f.write "\n" + 'Start time: ' + Time.now.inspect
     end
 
     # Write a file with every error message
@@ -149,7 +149,7 @@ class WebServiceSOAP
         f.write message.to_s + "\n"
       end
 
-      f.write '\n' + 'Start time: ' + Time.now.inspect
+      f.write "\n" + 'Start time: ' + Time.now.inspect
     end
   end
 end

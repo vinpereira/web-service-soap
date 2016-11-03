@@ -75,6 +75,7 @@ begin
 
   # Write files (IDs + error messages) with the problems found
   ws_soap.files_with_problems
+  
 rescue Exception => msg
   puts 'Web Service problem at: ' + msg.to_s
 end
