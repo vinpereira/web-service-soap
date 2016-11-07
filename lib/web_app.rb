@@ -22,4 +22,10 @@ class WebApp < Sinatra::Base
   get '/getRequestDetails/:id' do
     @web_service_soap.get_request_details(request_id: params['id']).to_s
   end
+
+  get '/getTest' do
+    xml = @web_service_soap.get_all_requests
+    id = xml.xpath('//idtSolicitacao[1]/text()')
+    @web_service_soap.get_request_details(request_id: id).to_s
+  end
 end

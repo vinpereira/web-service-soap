@@ -128,7 +128,7 @@ class WebServiceSOAP
       @messages << msg.to_s.force_encoding('utf-8')
 
       # ID with problem (could be from XML or ES)
-      @ids_with_problems << id.to_s
+      @ids_with_problems << request_id.to_s
     end
 
   end
