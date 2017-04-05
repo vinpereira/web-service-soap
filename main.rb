@@ -2,35 +2,32 @@ Dir['lib/**/*.rb'].sort.each { |file| require(File.dirname(__FILE__) + '/'+ file
 
 require 'time_difference'
 require 'elasticsearch'
+require 'yaml'
 
 # Get start time
 start_time = Time.now
 
-# Set arguments
-cod_provider = ARGV[0].to_s
-username = ARGV[1].to_s
-password = ARGV[2].to_s
-from_date = ARGV[3].to_s
-to_date = ARGV[4].to_s
+# Get arguments from config file
+config = YAML::load_file('config/config.yml')
 
 # Total of documents created
 count_documents = 0
 
 # Set an Elasticsearch client and connect to an URL
-es_client = Elasticsearch::Client.new url: 'http://localhost:9200', log: true
+es_client = Elasticsearch::Client.new url: 'http://192.168.0.5:9200', log: true
 
 # Delete an ES index
-es_client.indices.delete index: 'index_name'
+es_client.indices.delete index: 'wsanatel'
 
 # (Re)Create an ES index
-es_client.indices.create index: 'index_name'
+es_client.indices.create index: 'wsanatel'
 
 # Declare a WS Anatel variable
-ws_soap = WebServiceSOAP.new provider: cod_provider,
-                             username: username,
-                             password: password,
-                             from_date: from_date,
-                             to_date: to_date
+ws_soap = WebServiceSOAP.new provider: config['provider'],
+                             username: config['username'],
+                             password: config['password'],
+                             from_date: config['from_date'],
+                             to_date: config['to_date']
 
 # Set WS properties
 ws_soap.set_web_service
@@ -49,17 +46,20 @@ begin
     # For each ID inside the slice
     slice.each do |id|
       # Add a thread to Threads array
-      threads << Thread.new do
-        # Get a JSON with request's details
-        hash_body_with_details = ws_soap.get_request_details request_id: id
+      threads << Thread.new(id) do
 
-        # puts hash_body_with_details
+        # Declare a WS Anatel variable
+        ws_soap_details = WebServiceSOAP.new provider: config['provider'],
+                                             username: config['username'],
+                                             password: config['password'],
+                                             from_date: config['from_date'],
+                                             to_date: config['to_date']
 
-        # Insert a document with the JSON content into ES
-        es_client.index index: 'index_name',
-                       type: 'type_name',
-                       id: id.to_s,
-                       body: hash_body_with_details
+        # Set WS properties
+        ws_soap_details.set_web_service
+
+        # Get details and write them at Elasticsearch
+        ws_soap_details.write_details_at_elasticsearch request_id: id
 
         # Add 1 document created
         count_documents += 1
@@ -75,7 +75,7 @@ begin
 
   # Write files (IDs + error messages) with the problems found
   ws_soap.files_with_problems
-  
+
 rescue Exception => msg
   puts 'Web Service problem at: ' + msg.to_s
 end

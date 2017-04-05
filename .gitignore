@@ -1,2 +1,8 @@
-reports/
+### Reports ###
+output/
+
+### Gemfile.lock ###
 *.lock
+
+### Temp files ###
+*.txt

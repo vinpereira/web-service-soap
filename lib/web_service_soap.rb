@@ -2,6 +2,7 @@ require 'net/http'
 require 'uri'
 require 'nokogiri'
 require 'json'
+require 'elasticsearch'
 
 class WebServiceSOAP
   attr_reader :provider, :username, :password, :from_date, :to_date
@@ -23,17 +24,17 @@ class WebServiceSOAP
 
   # Set WS properties
   def set_web_service
-    @uri = URI.parse('HTTP without WSDL')
+    @uri = URI.parse('set Web Service SOAP URL')
     @request = Net::HTTP::Post.new(@uri)
     @request.content_type = 'text/xml'
   end
 
   def get_all_requests
-    # Set 'consultarSolicitacao' action
-    @request['Soapaction'] = 'SOAP Action'
+    # Set 'get_all_requests' action
+    @request['Soapaction'] = 'set Web Service get_all_requests action'
 
     # Set 'consultarSolicitacao' body
-    @request.body = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:act="HTTP for the action">
+    @request.body = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:act="set action address">
                        <soapenv:Header/>
                        <soapenv:Body>
                           <act:consultarSolicitacao>
@@ -76,12 +77,12 @@ class WebServiceSOAP
   end # end-get_all_requests
 
   def get_request_details(request_id:)
-    # Set 'consultarDetalheSolicitacao' action
-    @request['Soapaction'] = 'SOAP Action'
+    # Set 'get_request_details' action
+    @request['Soapaction'] = 'set Web Service get_request_details action'
 
     # Set a new request body for 'consultarDetalheSolicitacao'
     @request.body = ''
-    @request.body = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:act="HTTP for the action">
+    @request.body = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:act="set action address">
                        <soapenv:Header/>
                        <soapenv:Body>
                           <act:consultarDetalheSolicitacao>
@@ -113,6 +114,7 @@ class WebServiceSOAP
 
       # Create a hash where Key is node.name and Value is node.content
       hash_body = {}
+
       xml_with_details.xpath('//resposta_detalhe_consulta/*').each do |node|
         hash_body[node.name] = node.content.gsub(/\s+/, ' ').strip
       end
@@ -131,6 +133,20 @@ class WebServiceSOAP
       @ids_with_problems << request_id.to_s
     end
 
+  end
+
+  def write_details_at_elasticsearch(request_id:)
+
+    hash_body_with_details = get_request_details request_id: request_id
+
+    # Set an Elasticsearch client and connect to an URL
+    es_client = Elasticsearch::Client.new url: 'set Elasticsearch index name', log: true
+
+    # Insert a document with the JSON content into ES
+    es_client.index index: 'set Elasticsearch index name',
+                    type: 'set Elasticsearch type name',
+                    id: request_id.to_s,
+                    body: hash_body_with_details
   end
 
   def files_with_problems
